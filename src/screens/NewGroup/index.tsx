@@ -21,16 +21,16 @@ export function NewGroup(): JSX.Element {
     try {
       if (!group.trim()) {
         setGroup('');
-        return Alert.alert('Novo Grupo', 'Informe o nome do grupo!');
+        return Alert.alert('Nova Turma', 'Informe o nome da turma!');
       }
 
       await createGroup(group);
       navigation.navigate('players', { group });
     } catch (error) {
       if (error instanceof AppError) {
-        Alert.alert('Novo Grupo', error.message);
+        Alert.alert('Novo Turma', error.message);
       } else {
-        Alert.alert('Novo Grupo', 'Não foi possível criar um novo grupo!');
+        Alert.alert('Novo Turma', 'Não foi possível criar um novo turma!');
       }
     }
   }

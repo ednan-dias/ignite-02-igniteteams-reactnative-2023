@@ -10,6 +10,7 @@ import { Header } from '@components/Header';
 import { Highlight } from '@components/Highlight';
 import { Input } from '@components/Input';
 import { ListEmpty } from '@components/ListEmpty';
+import { Loader } from '@components/Loader';
 import { PlayerCard } from '@components/PlayerCard';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { removeGroupByName } from '@storage/groups/removeByName';
@@ -26,6 +27,7 @@ type RouteParams = {
 };
 
 export function Players(): JSX.Element {
+  const [isLoading, setIsLoading] = useState(true);
   const [playerName, setPlayerName] = useState('');
   const [selectedTeam, setSelectedTeam] = useState('Time A');
   const [players, setPlayers] = useState<PlayerStorageDTO[]>([]);
@@ -67,6 +69,8 @@ export function Players(): JSX.Element {
   }
 
   const fetchPlayersByTeam = useCallback(async () => {
+    setIsLoading(true);
+
     try {
       const playersByTeam = await getPlayersByGroupAndTeam(group, selectedTeam);
       setPlayers(playersByTeam);
@@ -75,6 +79,8 @@ export function Players(): JSX.Element {
         'Pessoas',
         'Não foi possível carregar as pessoas do time selecionado.'
       );
+    } finally {
+      setIsLoading(false);
     }
   }, [group, selectedTeam]);
 
@@ -93,12 +99,12 @@ export function Players(): JSX.Element {
 
       navigation.navigate('groups');
     } catch (error) {
-      Alert.alert('Remover grupo', 'Não foi possível remover o grupo.');
+      Alert.alert('Remover turma', 'Não foi possível remover a turma.');
     }
   }
 
   async function handleGroupRemove(): Promise<void> {
-    Alert.alert('Remover', 'Deseja remover o grupo?', [
+    Alert.alert('Remover', 'Deseja remover a turma?', [
       {
         text: 'Não',
         style: 'cancel',
@@ -119,7 +125,7 @@ export function Players(): JSX.Element {
       <Header showBackButton />
 
       <Highlight
-        title={group || 'Nome do Grupo'}
+        title={group || 'Nome da Turma'}
         subtitle="adicione a galera e separe os times"
       />
 
@@ -157,24 +163,28 @@ export function Players(): JSX.Element {
         <NumberOfPlayers>{players.length}</NumberOfPlayers>
       </HeaderList>
 
-      <FlatList
-        data={players}
-        keyExtractor={(player) => player.name}
-        renderItem={({ item: player }) => (
-          <PlayerCard
-            name={player.name}
-            onRemove={() => handleRemovePlayer(player.name)}
-          />
-        )}
-        ListEmptyComponent={() => (
-          <ListEmpty message="Não há pessoas nesse time." />
-        )}
-        showsVerticalScrollIndicator={false}
-        contentContainerStyle={[
-          { paddingBottom: 100 },
-          players.length === 0 && { flex: 1 },
-        ]}
-      />
+      {isLoading ? (
+        <Loader />
+      ) : (
+        <FlatList
+          data={players}
+          keyExtractor={(player) => player.name}
+          renderItem={({ item: player }) => (
+            <PlayerCard
+              name={player.name}
+              onRemove={() => handleRemovePlayer(player.name)}
+            />
+          )}
+          ListEmptyComponent={() => (
+            <ListEmpty message="Não há pessoas nesse time." />
+          )}
+          showsVerticalScrollIndicator={false}
+          contentContainerStyle={[
+            { paddingBottom: 100 },
+            players.length === 0 && { flex: 1 },
+          ]}
+        />
+      )}
 
       <Button
         title="Remover turma"
